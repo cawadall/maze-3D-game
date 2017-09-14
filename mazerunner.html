@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>MAZE RUNNER</title>
+    <link rel="stylesheet" type="text/css" href="maze_stylesheet.css" media="screen">
+  </head>
+
+  <body>
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+             <!-- Modal content -->
+            <div class="modal-content">
+              <div class="modal-header">
+                <span class="close" onclick="toContinue()">&times;</span>
+                <h2 align="center" id="msg"></h2>
+              </div>
+              <div class="modal-body">
+                <p align="center" id="help"></p>
+                <p align="center">
+                   <button onclick="nextLevel()" class="boton naranja" id="next_stats">next level</button>
+                   <button onclick="location.reload()" class="boton naranja">restart from level 1</button>
+                </p>
+              </div>
+              <div class="modal-footer"></div>
+            </div>
+        </div>
+        <audio id="music" src="intro_agresiva.mp3" preload=true autoplay=true loop></audio>
+        <audio id="steps" src="steps.mp3" preload=true style="display;none" loop></audio>
+        <audio id="po" src="po.mp3" preload=true style="display;none"></audio>
+        <p id="title"><span id="grande"><b>MAZE RUNNER</b></span> <br> <span id="resaltado"> by </span> CARLOS AWADALLAH</p>
+        <div class="controls" id="menu-buttons">
+		        <ul>
+			        <li class="button" id="newGame" onclick="init()">new game</li>
+			        <li class="button" id="instructions" onclick="showControls()">instructions</li>
+			        <li class="button" id="info" onclick="showInfo()">info</li>
+		        </ul>
+		
+        </div>
+        <div id="game" style="display: none">
+		    <div id="main" style="position: relative;">
+          <!-- 2 CANVAS, UNO PARA 2D Y OTRO PARA 3D-->
+		     <canvas id="webgl" width="800" height="450"
+		       style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
+		     <canvas id="2d" width="800" height="450"
+		       style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>            <div>
+            <div id="statistics">
+                <fieldset>
+                    <legend>GAME INFO</legend>
+                    <p> nota: si abres el menu <br>de controles, pulsa luego  <br> en cualquier parte del <br> navegador para que la <br>funcionalidad de la <br>ventana no interfiera en <br>el juego <p>
+                    <button onclick="showControls()">Controls</button>
+                    <p id="p_points"> points: 0 pts.</p>
+                    <p id="p_level">level: 1</p>
+                    <p id="timing">time: 0:4:0 left</p>
+                </fieldset>
+            </div>
+       </div>
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix.js"></script>
+		<script src="maze.js"></script>
+    <script src="mazerunner.js"></script>
+  </body>
+</html>

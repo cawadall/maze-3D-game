@@ -1,0 +1,147 @@
+
+#main{margin:-50px 0px 20px 220px;}
+canvas{margin: 50px 0 0 130px;}
+//button{margin:0px 0px 0px 50px;}
+body {background:url('laberinto_fondo.png'); background-size: cover; color:white;}
+
+
+.boton{
+    text-align:center;
+    text-decoration: none;
+    font-family: "game";
+    display:inline-block;
+    color: #FFF;
+    background: #7F8C8D;
+    padding: 15px 30px;
+    white-space: nowrap;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin: 10px 5px;
+    -webkit-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+.naranja{background: rgba(110,44,0,1);}
+.naranja:hover{background: #D35400;}
+
+/*Ventana Modal para el menú*/
+.modal {
+    font-family: "game";
+    display: none;
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /*centradito*/
+    padding: 20px;
+    border: 1px solid #888;
+    width: 150%;
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.close:hover, .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+.modal-header {
+    padding: 2px 16px;
+    background-color: rgba(110,44,0,1);
+    color: white;
+}
+.modal-body {padding: 2px 16px; 
+             height: 200px; 
+             background:rgba(110,110,110,1)}
+.modal-footer {
+    padding: 2px 16px;
+    background-color: rgba(110,44,0,1);
+    color: white;
+    height: 70px
+}
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 80%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s
+}
+
+/* Animación para la ventana modal*/
+@-webkit-keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+@font-face
+{
+   font-family: "pacman";
+   src: url("pipe.eot");
+   src: url("pipe.eot?#amocristalab") format("embedded-opentype"),
+        url("pipe.woff") format("woff"),
+        url("basica.ttf") format("truetype"),
+        url("pipe.svg#IDdelafuente") format("svg");
+}
+
+@font-face
+{
+   font-family: "options";
+   src: 
+        url("zian.ttf") format("truetype");
+}
+
+@font-face
+{
+   font-family: "game";
+   src: 
+        url("game.ttf") format("truetype");
+}
+
+.controls { text-align: center; margin: 50px 0px 0px 380px;}
+#menu-buttons ul, .controls#menu-buttons ul li{ list-style: none; padding: 0;}
+#menu-buttons ul li { 
+	height: 100px;
+    width: 550px;
+	line-height: 90px;
+	font-size: 250%;
+}
+#title {margin: 50px 0 50px 10px; font-family: "pacman"; font-size: 300%;}
+#resaltado {color: rgb(110,44,0)}
+#grande {font-size: 280%;}
+#statistics {font-family: "game"; float:left; margin: -300px 0px 0 0}
+#menu-buttons .button { background: rgba(147,81,22,1); color:rgb(204, 209, 209);}
+#menu-buttons .button:hover, .button:hover { background: rgba(110,44,0,1); }
+.button {
+	background: #c80a0a; 
+	cursor: pointer;
+	padding: 8px;
+    font-size: 60px;
+    font-family: "options";
+}
+
+
