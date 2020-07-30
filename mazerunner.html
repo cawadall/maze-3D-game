@@ -5,7 +5,7 @@
     <title>MAZE RUNNER</title>
     <link rel="stylesheet" type="text/css" href="maze_stylesheet.css" media="screen">
   </head>
-
+  <script src="CORS.js"></script>
   <body>
         <!-- The Modal -->
         <div id="myModal" class="modal">
@@ -39,15 +39,16 @@
         </div>
         <div id="game" style="display: none">
 		    <div id="main" style="position: relative;">
-          <!-- 2 CANVAS, UNO PARA 2D Y OTRO PARA 3D-->
+          <!-- 2D AND 3D CANVAS-->
 		     <canvas id="webgl" width="800" height="450"
 		       style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
 		     <canvas id="2d" width="800" height="450"
-		       style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>            <div>
+		       style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+            <div>
             <div id="statistics">
                 <fieldset>
                     <legend>GAME INFO</legend>
-                    <p> nota: si abres el menu <br>de controles, pulsa luego  <br> en cualquier parte del <br> navegador para que la <br>funcionalidad de la <br>ventana no interfiera en <br>el juego <p>
+                    <p> tips: use the mini side <br>map to plan your way out<br> path. take into account<br> the available updside<br> views to have a broader<br> view of the scene. Be<br> aware of the timeout!</p> 
                     <button onclick="showControls()">Controls</button>
                     <p id="p_points"> points: 0 pts.</p>
                     <p id="p_level">level: 1</p>
@@ -55,6 +56,7 @@
                 </fieldset>
             </div>
        </div>
+        
     <script src="lib/webgl-utils.js"></script>
     <script src="lib/webgl-debug.js"></script>
     <script src="lib/cuon-utils.js"></script>

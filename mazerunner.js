@@ -1,7 +1,7 @@
-// Establezco el volumen d ela música de fondo
+// Background theme volume
 document.getElementById("music").volume= "0.1";
 
-//SHADER DE VÉRTICES
+//VERTEX SHADER
 var VSHADER_SOURCE =
   'attribute highp vec3 a_VertexPosition;\n' +
   'attribute highp vec2 a_TextureCoord;\n' +
@@ -18,17 +18,17 @@ var VSHADER_SOURCE =
   'varying highp vec4 v_viewSpace;\n' +
 
   'void main() {\n' +
-  '  gl_Position = u_ProjMatrix * u_ViewMatrix * u_ModelMatrix * vec4(a_VertexPosition, 1.0);\n' + // POSICIÓN EN EL CANVAS
+  '  gl_Position = u_ProjMatrix * u_ViewMatrix * u_ModelMatrix * vec4(a_VertexPosition, 1.0);\n' + // POSITION IN CANVAS
 
   '  v_TextureCoord = a_TextureCoord;\n' +
-  '  v_vertexPosition = u_ModelMatrix * vec4(a_VertexPosition, 1.0);\n' + // POSICIÓN EN EL ESPACIO DE LOS VÉRTICES
+  '  v_vertexPosition = u_ModelMatrix * vec4(a_VertexPosition, 1.0);\n' + // POSITION IN VERTEX SPACE
   '  v_TransformedNormal = u_NormalMatrix * vec4(a_VertexNormal, 1.0);\n' +
 
   '  v_viewSpace = u_ViewMatrix * u_ModelMatrix * vec4(a_VertexPosition, 1.0);\n' +
 
 	'}\n';
 
-// SHADER DE FRAGMENTOS
+// FRAGMENTS SHADER
 var FSHADER_SOURCE =
   'varying highp vec2 v_TextureCoord;\n' +
   'varying highp vec4 v_vertexPosition;\n' +
@@ -40,12 +40,12 @@ var FSHADER_SOURCE =
   'uniform highp vec4 u_pointLightPosition;\n' +
 
   'const highp vec3 fogColor = vec3(0.3, 0.3, 0.3);\n' +
-	'uniform highp float u_FogDensity;\n' + // Para niebla exponencial
+	'uniform highp float u_FogDensity;\n' + // exponential fog
 	'const highp float fogStart = -0.09;\n' +
 	'const highp float fogEnd = 0.5;\n' +
 
   'void main() {\n' +
-	'  highp vec3 ambientLight = vec3(0.0, 0.0, 0.0);\n' +  // COLORES DE LAS LUCES
+	'  highp vec3 ambientLight = vec3(0.0, 0.0, 0.0);\n' +  // lights colour
 	'  highp vec3 directionalLightColor = vec3(1.0, 1.0, 1.0);\n' +
 	'  highp vec3 PointLightingSpecularColor = vec3(1.0, 1.0, 1.0);\n' +
 
@@ -60,7 +60,7 @@ var FSHADER_SOURCE =
 	'  highp vec3 normal = normalize(v_TransformedNormal.xyz);\n'+
 	'  highp vec3 eyeDirection = normalize(pointLightPosition.xyz-v_vertexPosition.xyz);\n'+ 
 
-	'  highp vec3 lightDirection = normalize((pointLightPosition - v_vertexPosition).xyz);\n' + // VECTOR INCIDENCIA
+	'  highp vec3 lightDirection = normalize((pointLightPosition - v_vertexPosition).xyz);\n' +
 	'  highp vec3 reflectionDirection = reflect(-lightDirection, normal);\n'+
 
 	'  highp float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), materialShiness);\n'+
@@ -74,13 +74,12 @@ var FSHADER_SOURCE =
     '  gl_FragColor = vec4(fogColor*(1.0-fogFactor), 1.0) + fogFactor*vec4(texelColor.rgb * texelColor1.rgb * v_Lighting.rgb, texelColor.a);\n' +
   '}\n';
 
-
 var buffers, textures, obstacle, bullets, headshot;
 var t0, starthour, timing, steps_sound, po_sound;
 var mazeMatrix, mouseposprev;
 var points = 0, level = 1, timeleft = 4*60;
 
-// FUNCIÓN QUE GESTIONA LA POSICIÓN DLE RATÓN
+// To manage mouse position
 function mousePosition(evt) {
       var mousePos = getMousePos(buffers.canvas, evt);
       if (mouseposprev == undefined) {mouseposprev = mousePos;}
@@ -97,7 +96,7 @@ function mousePosition(evt) {
       mouseposprev = mousePos;
 }
 
-// FUNCIÓN PARA MOSTRAR LOS CONTROLES DEL JUEGO
+// Shows game controls
 function showControls() {
     alert('Use:\n'+
           ' - Arrow Keys to move forwards/backwards or turn left/right.\n'+
@@ -106,19 +105,18 @@ function showControls() {
           " - 'X' Key for shooting.");
 }
 
-// PARA MOSTRAR INFORMACIÓN DE AUTORÍA
+// Shows game  info
 function showInfo() {
 
     alert("THIS CODE MADE BY: Carlos Awadallah Estévez\nSUBJECT: Gráficos y Visualización en 3D\nURJC, Ing. Sistemas Audiovisuales y Multimedia.");
 }
 
-// FUNCIÓN PARA INICIALIZAR LA APARIENCIA DE LA VENTANA PRINCIPAL DEL JUEGO
+// Initialization of main menu
 function init() {
-    // Elimino todos los elementos del html a partir de 'menu-buttons'
     var menu = document.getElementById('menu-buttons');
     var father = menu.parentNode;
     father.removeChild(menu);
-    // Muestro y añado atributos a los demás elementos, hasta ahora ocultos
+    // Show game elements
     var m = document.getElementById('game');
     m.style = "display: block";
     document.getElementById('statistics').style = "margin: 100px 0 0 -200px";
@@ -126,18 +124,18 @@ function init() {
     document.getElementById("music").volume = "0.4";
     document.getElementById("music").src = "thriller.mp3";
     document.getElementById("title").style = "font-size: 80%";
-    main(); // ejecuto función principal 
+    main();
 }
 
-// FUNCIÓN PRINCIPAL (DE INICIALIZACIÓN)
+// Game initialization
 function main() {
-    // Varía el tamaño del laberinto y el tiempo en función del nivel actual
+    // Adapt maze dimensions and timeouts to the current level
     if (level < 5) {MAZESZ = 10 * (level/2)} else {MAZESZ = 20; timeleft = (4*60-((level-4)*10))}
     buffers = {};
     textures = {};
     obstacle = {};
     bullets = [];
-    // Inicializo las variables de tiempo y creo el laberinto
+    // Create maze and timers
     // ----------------------------------------------------
     t0 = new Date();
     starthour = new Date();
@@ -148,7 +146,7 @@ function main() {
     gameTime();
     timing = setInterval(gameTime, 1000);
     // ----------------------------------------------------
-    // Inicializo sonidos
+    // Init game sound effects
     // ----------------------------------------------------
     steps_sound = document.getElementById("steps");
     steps_sound.volume="0.35";
@@ -160,13 +158,12 @@ function main() {
     var canvas2d = document.getElementById('2d');
     var ctx_2d = canvas2d.getContext('2d');
 
-    gl = getWebGLContext(canvas); // Extraigo el contexto 3D
+    gl = getWebGLContext(canvas); // get 3D context
     if (!gl) {
-    console.log('Failed to get the rendering context for WebGL');
-    return;
+        console.log('Failed to get the rendering context for WebGL');
+        return;
     }
 
-    // Objeto para almacenar ls variables de datos necesarias
     buffers.vertices = gl.createBuffer();
     buffers.textures = gl.createBuffer();
     buffers.indices = gl.createBuffer();
@@ -187,38 +184,38 @@ function main() {
     buffers.enter = true;
     buffers.up = 0;
 
-    // Roto la miniatura del laberinto
+    // Rotate mini side map
     buffers.ctx_2d.clearRect(0, 0, buffers.canvas.width, buffers.canvas.height);
     buffers.ctx_2d.translate(50,58);
     buffers.ctx_2d.rotate(Math.PI);
     buffers.ctx_2d.translate(-50,-58);
 
-    mazeMatrix.my_maze.randPrim(new Pos(0, 0)); // 0,0 SERÁ LA SALIDA
-    // Genera una posición aleatoria de inicio en una posición mayor o igual al [10,10]
+    mazeMatrix.my_maze.randPrim(new Pos(0, 0)); // 0,0 = WAY OUT
+    // Generates initial user coordinates far from the way out
     do {
         buffers.camx = Math.floor(Math.random()*MAZESZ/2+MAZESZ/2);
         buffers.camy = Math.floor(Math.random()*MAZESZ/2+MAZESZ/2);
     } while(mazeMatrix.my_maze.rooms[buffers.camx][buffers.camy] == false)
 
-    // Posición aleatoria para el obstáculo
+    // Random position of zombie
     do {
         obstacle.x = Math.floor(Math.random()*MAZESZ);
         obstacle.y = Math.floor(Math.random()*MAZESZ);
         obstacle.z = 0;
     } while((mazeMatrix.my_maze.rooms[obstacle.x][obstacle.y] == false) || (buffers.camx == obstacle.x && buffers.camy == obstacle.y))
-    // sumo 0.5 para aparecer en el centro de la casilla
+    // +0.5 to appear at the center
     buffers.camx += 0.5;
     buffers.camy += 0.5;
     buffers.camz = 1;
-    // Posición del punto rojo en la miniatura del laberinto
+    // user position in mini side map
     mazeMatrix.my_maze.pos.x = buffers.camx;
     mazeMatrix.my_maze.pos.y = buffers.camy;
-    // Inicialización de los shaders
+    // Init shaders
     if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
     console.log('Failed to intialize shaders.');
     return;
     }
-    // Establezco la Matriz de perspectiva (fija durante todo el programa)
+    // Perspective Matrix (fixed)
     var u_ProjMatrix = gl.getUniformLocation(gl.program, 'u_ProjMatrix');
     if (!u_ProjMatrix) {
         console.log('Failed to get the storage location of u_ProjMatrix');
@@ -227,41 +224,41 @@ function main() {
     var projMatrix = new Matrix4();
     projMatrix.setPerspective(100, canvas.width/canvas.height, 0.0001, 500);
     gl.uniformMatrix4fv(u_ProjMatrix, false, projMatrix.elements);
-    //Limpia el canvas 3D
+    //Clean 3D canvas
     if (gl) {
         gl.clearColor(0.3, 0.3, 0.3, 1);
         gl.clearDepth(1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
 
-        // Añado un manejador de enventos para cuando se pulse una tecla
+        // Key Events Handler
         document.addEventListener('keydown', keyHandler, false);
-        // Inicializo texturas para cada nivel
+        // Textures according to level
         if (level == 1 || level == 5) {
-          textures.texture1 = initTextures("pared.png");
-          textures.texture3 = initTextures("sangre.jpg");
-          textures.texture2 = initTextures("baldosas.jpg");
-          textures.texture6 = initTextures("baldosas.jpg");
+            textures.texture1 = initTextures("pared.png");
+            textures.texture3 = initTextures("sangre.jpg");
+            textures.texture2 = initTextures("baldosas.jpg");
+            textures.texture6 = initTextures("baldosas.jpg");
         } else if (level==2 || level == 6) {
-          textures.texture1 = initTextures("madera.png")
-          textures.texture3 = initTextures("sangre.jpg");
-          textures.texture2 = initTextures("roto.png");
-          textures.texture6 = initTextures("roto.png");
+            textures.texture1 = initTextures("madera.png")
+            textures.texture3 = initTextures("sangre.jpg");
+            textures.texture2 = initTextures("roto.png");
+            textures.texture6 = initTextures("roto.png");
         } else if (level==3 || level == 7){
-          textures.texture1 = initTextures("metal.png")
-          textures.texture3 = initTextures("metal.png");
-          textures.texture2 = initTextures("baldosas.jpg");
-          textures.texture6 = initTextures("agujero.png");
+            textures.texture1 = initTextures("metal.png")
+            textures.texture3 = initTextures("metal.png");
+            textures.texture2 = initTextures("baldosas.jpg");
+            textures.texture6 = initTextures("agujero.png");
         } else {
-          textures.texture1 = initTextures("cristal.png")
-          textures.texture3 = initTextures("cristal.png");
-          textures.texture2 = initTextures("arena.png");
-          textures.texture6 = initTextures("arena.png");
+            textures.texture1 = initTextures("cristal.png")
+            textures.texture3 = initTextures("cristal.png");
+            textures.texture2 = initTextures("arena.png");
+            textures.texture6 = initTextures("arena.png");
         }
         textures.texture4 = initTextures(undefined);
         textures.texture5 = initTextures("zombie.png");
 
-        // Añado un manejador de eventos para capturar el movimiento del ratón
+        // Mouse Move Events Handlers
         addEventListener("mousedown", function(evt) {
           addEventListener("mousemove", mousePosition, false);
         }, false);
@@ -274,46 +271,51 @@ function main() {
      }
 }
 
-// FUNCIÓN PARA OBTENER LA POSICIÓN DEL RATÓN EN EL CANVAS 2D
+// Gets Mouse Poisition in 2D CANVAS
 function getMousePos(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
     return {
-      x: evt.clientX - rect.left,
-      y: evt.clientY - rect.top
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
     };
-  }
+}
 
-// FUNCIÓN DE INICIALIZACIÓN DE TEXTURAS
+// Init Textures
 function initTextures(resource) {
 
-  var texture1 = buffers.gl.createTexture(); //CREO LA TEXTURA
-  buffers.gl.bindTexture(buffers.gl.TEXTURE_2D, texture1);
-  buffers.gl.texImage2D(buffers.gl.TEXTURE_2D, 0, buffers.gl.RGBA, 1, 1, 0, buffers.gl.RGBA, buffers.gl.UNSIGNED_BYTE,
-              new Uint8Array([255, 0, 0, 255])); //TEXTURA POR DEFECTO (ROJA)
-  if (resource != undefined) {
-    var img = new Image(); // SI SE QUIERE PONER UNA IMAGEN...
-    img.src = resource;
-    img.onload = function() { handleTextureLoaded(img, texture1); }
-  }
-  return texture1;
+    var texture1 = buffers.gl.createTexture(); //create the texture
+    buffers.gl.bindTexture(buffers.gl.TEXTURE_2D, texture1);
+    buffers.gl.texImage2D(buffers.gl.TEXTURE_2D, 0, buffers.gl.RGBA, 1, 1, 0,
+                          buffers.gl.RGBA, buffers.gl.UNSIGNED_BYTE,
+                          new Uint8Array([255, 0, 0, 255])); //default texture (red)
+    if (resource != undefined) {
+        var img = new Image();
+        var url = new URL(resource, window.location.href);
+        img.onload = function() { handleTextureLoaded(img, texture1); }
+        img.onerror = function(e) { console.log("error", e); }
+        img.src = url;
+    }
+    return texture1;
 }
 
-// FUNCIÓN DE GESTIÓN DE TEXTURAS
+// Manage Textures
 function handleTextureLoaded(image, texture) {
-  console.log("handleTextureLoaded, image = " + image);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-  gl.UNSIGNED_BYTE, image); //IMAGEN COMO TEXTURA
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); // Repetición de la textura en el eje S
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT); // Repetición de la textura en el eje T
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); // PARA CUANDO TE ACERCAS: INTERPOLACIÓN LINEAL
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST); //PARA CUANDO TE ALEJAS: EL MÁS CERCANO
+    console.log("handleTextureLoaded, image = " + image);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
+    gl.UNSIGNED_BYTE, image); //image as texture
+  
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); // repeat along S axis
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT); // repeat along T axis
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); // Lineal interpolation for closer view
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST); // Nearest for further view
 
-  gl.generateMipmap(gl.TEXTURE_2D); // ESCALADO DE LA TEXTURA PARA CASOS EN QUE NOS ELEJEMOS O ACERQUEMOS
-  gl.bindTexture(gl.TEXTURE_2D, null); // SE HACE UN BIND A NULL POR SI SE QUIERE USAR OTRA TEXTURA
+    gl.generateMipmap(gl.TEXTURE_2D); // texture scale in case of movements
+    gl.bindTexture(gl.TEXTURE_2D, null); // in case of more textures needed
+  
 }
 
-// FUNCIÓN INICIALIZADORA DE BUFFERS
+// Init buffers
 function initVertexBuffers(gl, option) {
     //       cube
     //    v6----- v5
@@ -333,7 +335,6 @@ function initVertexBuffers(gl, option) {
     -0.5, -0.5, -0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5    // Left face
     ]);
 
-
     var textureCoordinates = new Float32Array([
     0.0,  0.0,     1.00,  0.0,     1.0,  1.00,  0.0, 1.0,  // Front
     0.0,  0.0,     1.00,  0.0,     1.0,  1.00,  0.0, 1.0,// Back
@@ -352,7 +353,6 @@ function initVertexBuffers(gl, option) {
     0.0,  1.0,     0.00,  0.0,     1.0,  0.0,   1.0, 1.0,   // Right
     ]);
 
-
     var vertexNormals = new Float32Array([
     0.0,  0.0,  1.0,  0.0,  0.0,  1.0,  0.0,  0.0,  1.0,  0.0,  0.0,  1.0,   // Front face
     0.0,  0.0, -1.0,  0.0,  0.0, -1.0,  0.0,  0.0, -1.0,  0.0,  0.0, -1.0,   // Back face
@@ -361,7 +361,6 @@ function initVertexBuffers(gl, option) {
     1.0,  0.0,  0.0,  1.0,  0.0,  0.0,  1.0,  0.0,  0.0,  1.0,  0.0,  0.0,   // Right face
     -1.0,  0.0,  0.0, -1.0,  0.0,  0.0, -1.0,  0.0,  0.0, -1.0,  0.0,  0.0   // Left face
     ]);
-
 
     var indices = new Uint8Array([
      0, 1, 2,   0, 2, 3,
@@ -395,7 +394,7 @@ function initVertexBuffers(gl, option) {
     0,  1,  2,      3,  4,  5
     ]);
 
-    // Se enganchan unos u otros buffers en función de si se llama a este método para pintar las paredes, suelo, obstáculos, ...
+    // Use appropiate point buffers for each scene element
     if (option == "walls" || option == "zombie") {
 
         if (!initArrayBuffer(gl, vertices, buffers.vertices, 3, gl.FLOAT, 'a_VertexPosition'))
@@ -435,36 +434,35 @@ function initVertexBuffers(gl, option) {
     }
 }
 
-// FUNCIÓN DE INICIALIZACIÓN Y ENGANCHE DE BUFFERS
+// Binding of buffers
 function initArrayBuffer(gl, data, buffer, num, type, attribute) {
-  if (!buffer) {
-    console.log('Failed to create the buffer object');
-    return false;
-  }
+    if (!buffer) {
+        console.log('Failed to create the buffer object');
+        return false;
+    }
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
 
-  var a_attribute = gl.getAttribLocation(gl.program, attribute);
-  if (a_attribute < 0) {
-    console.log('Failed to get the storage location of ' + attribute);
-    return false;
-  }
-  gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
-  gl.enableVertexAttribArray(a_attribute);
+    var a_attribute = gl.getAttribLocation(gl.program, attribute);
+    if (a_attribute < 0) {
+        console.log('Failed to get the storage location of ' + attribute);
+        return false;
+    }
+    gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
+    gl.enableVertexAttribArray(a_attribute);
 
-  return true;
+    return true;
 }
 
-// FUNCIÓN PARA PINTAR LAS PAREDES
+// Draw Walls
 function drawWalls(enter) {
-    // Texturas que se van a usar
     var textureCoordAttribute = gl.getAttribLocation(gl.program, "a_TextureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textures);
     gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textures.texture1); // ASOCIAMOS textures.textures1 A LA TEXTURA 0
+    gl.bindTexture(gl.TEXTURE_2D, textures.texture1);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, textures.texture3);
     gl.uniform1i(gl.getUniformLocation(gl.program, "u_Sampler"), 0);
@@ -479,66 +477,66 @@ function drawWalls(enter) {
     }
     var modelMatrix = new Matrix4(); // M
     var viewMatrix = new Matrix4();  // V
-    // variables para controlar el movimiento en función del tiempo y evitar el movimiento lagueado
+    // control of movement depending on time to avoid lag
     var now = new Date();
     now = now.getTime();
     var dt = now - t0;
     t0 = now;
 
-    // Componentes del vector de vista V(vx,vy,vz)
+    // View vector components V(vx,vy,vz)
     var vx = Math.sin(buffers.theta)*dt/1000;
     var vy = Math.cos(buffers.theta)*dt/1000;
     var vz = Math.sin(buffers.thetay)*dt/1000;
-    // Componentes de posición de la cámara C(cx,cy,cz)
-    var tsin = new Date(); // Utilizo un seno para simular el movimiento de una persona al caminar
+    // Camera components C(cx,cy,cz)
+    var tsin = new Date(); // sin as human walking simulation
     var tsin = tsin.getTime();
     buffers.camx += buffers.despx*Math.sin(buffers.theta);
     buffers.camy += buffers.despy*Math.cos(buffers.theta);
-    buffers.camz += buffers.despz*Math.sin(tsin*10/1000); // efecto de caminar
+    buffers.camz += buffers.despz*Math.sin(tsin*10/1000);
 
-    if (buffers.up == 0) // Dependiendo de si se esta usando la vista desde arriba o la vista en 1ª persona
+    if (buffers.up == 0) // depending on current view
     {
-        if (!crashWithSomething()) //Función para comprobar colisiones
+        if (!crashWithSomething()) // check for collisions
         {
             viewMatrix.setLookAt(buffers.camx, buffers.camy, buffers.camz, buffers.camx+vx, buffers.camy+vy, buffers.camz+vz, 0, 0, 1);
         } else {
             steps_sound.pause();
-            // si se colisiona se deshace el movimiento
+            // in case of collision the last movement is discarded
             buffers.camx -= buffers.despx*Math.sin(buffers.theta);
             buffers.camy -= buffers.despy*Math.cos(buffers.theta);
             buffers.camz -= buffers.despz*Math.sin(tsin*10/1000);
             viewMatrix.setLookAt(buffers.camx, buffers.camy, buffers.camz, buffers.camx+vx, buffers.camy+vy, buffers.camz+vz, 0, 0, 1);
         }
-        // ACTIVAR LA NIEBLA
+        // Activate fog
         var u_FogDensity = gl.getUniformLocation(gl.program, 'u_FogDensity');
         gl.uniform1f(u_FogDensity, 1.00);
 
     } else {
         steps_sound.pause();
-        // DESACTIVAR LA NIEBLA
+        // deactivate fog
         var u_FogDensity = gl.getUniformLocation(gl.program, 'u_FogDensity');
         gl.uniform1f(u_FogDensity, 0.00);
-        if (crashWithSomething()){ // sigo comprobando colisiones, ya que el programa continua en ejecución normal
+        if (crashWithSomething()){
             buffers.camx -= buffers.despx*Math.sin(buffers.theta);
             buffers.camy -= buffers.despy*Math.cos(buffers.theta);
             buffers.camz -= buffers.despz*Math.sin(tsin*10/1000);
         }
-        if (buffers.up == 1){ // establezco vista desde arriba
+        if (buffers.up == 1){ // upwards view
             viewMatrix.setLookAt(MAZESZ/2, MAZESZ/2, 11, 0, 0, -200, 0, 1, 0);
         } else if (buffers.up == 2) {
             viewMatrix.setLookAt(buffers.camx, buffers.camy, 4, 0, 0, -200, 0, 1, 0);
         }
     }
-    // Obtengo localización del uniform utilizado para la luz puntual
+    // Uniform's location of point ligth 
     var u_pointLightPosition = gl.getUniformLocation(gl.program, 'u_pointLightPosition');
     if (!u_pointLightPosition)
     {
         console.log('Failed to Get the storage location of u_pointLightPosition');
         return;
     }
-    gl.uniform4fv(u_pointLightPosition,[buffers.camx,buffers.camy,buffers.camz, 1.00]); // establezco el punto en el mismo sitio que la cámara
+    gl.uniform4fv(u_pointLightPosition,[buffers.camx,buffers.camy,buffers.camz, 1.00]); // actual point is stablished in the same position as the camera
 
-    // Pinto las paredes
+    // draw walls
     for (var i=0;i<mazeMatrix.my_maze.rooms.length;i++) {
         for (var j=0;j<mazeMatrix.my_maze.rooms.length;j++) {
             if (mazeMatrix.my_maze.rooms[i][j] == false)
@@ -558,14 +556,14 @@ function drawWalls(enter) {
 
                 gl.drawElements(gl.TRIANGLES, buffers.n, gl.UNSIGNED_BYTE, 0);
             }
-       }
+        }
     }
 }
 
-// FUNCIÓN QUE PINTA EL SUELO
+// Draw floor
 function drawFloor() {
 
-    // Funcionalidad análoga a drawWalls
+    // Analog to drawWalls
 
     var textureCoordAttribute = gl.getAttribLocation(gl.program, "a_TextureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
@@ -577,7 +575,7 @@ function drawFloor() {
     gl.bindTexture(gl.TEXTURE_2D, textures.texture6); 
     gl.uniform1i(gl.getUniformLocation(gl.program, "u_Sampler"), 0);
     gl.uniform1i(gl.getUniformLocation(gl.program, "u_Sampler1"), 1);
-    // Obtengo sólo la matriz de modelo, para este caso no necesito cambiar la vista
+    // Only model matrix as the view remains the same
     var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
     if (!u_ModelMatrix)
     {
@@ -585,7 +583,7 @@ function drawFloor() {
         return;
     }
     var modelMatrix = new Matrix4();
-    // Traslado el suelo al centro del laberinto y lo escalo para que ocupe toda su extensión
+    // Translate to the center of the maze and scale
     modelMatrix.setTranslate(MAZESZ/2,MAZESZ/2,0).scale(MAZESZ, MAZESZ, 1);
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.floorIndices);
@@ -600,20 +598,17 @@ function drawFloor() {
     gl.drawElements(gl.TRIANGLES, buffers.n, gl.UNSIGNED_BYTE, 0)
 }
 
-// FUNCIÓN PARA PINTAR LA CASILLA DE SALIDA
+// Draw way out point
 function drawExit() {
-      /* Misma función y mismos buffers que drawFloor() cambiando únicamente algunos
-         detalles como la textura utilizada y la posición                          */
 
       var textureCoordAttribute = gl.getAttribLocation(gl.program, "a_TextureCoord");
       gl.enableVertexAttribArray(textureCoordAttribute);
       gl.bindBuffer(gl.ARRAY_BUFFER, buffers.floorTextures);
       gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, textures.texture4); // utilizo texura por defecto
+      gl.bindTexture(gl.TEXTURE_2D, textures.texture4); // default texture
       gl.uniform1i(gl.getUniformLocation(gl.program, "u_Sampler"), 0);
 
-      // Obtengo sólo la matriz de modelo, para este caso no necesito cambiar la vista
       var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
       if (!u_ModelMatrix)
       {
@@ -621,7 +616,7 @@ function drawExit() {
         return;
       }
       var modelMatrix = new Matrix4();
-      // Traslado a la posición de salida
+      // Way out coordinates
       modelMatrix.setTranslate(0.5,0.5,0.01);
       gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.floorIndices);
@@ -634,12 +629,11 @@ function drawExit() {
       gl.uniformMatrix4fv(nUniform, false, normalMatrix.elements);
 
       gl.drawElements(gl.TRIANGLES, buffers.n, gl.UNSIGNED_BYTE, 0)
-
 }
 
-// FUNCIÓN QUE PINTA DISTINTOS CUBOS (Para visualización desde arriba, obstáculos y balas)
+// Draw cubes (upwards view, obstacles y bullets)
 function drawCube(option) {
-    // Texturas que se van a usar
+    // Select textures
     if (option == "CAMERA") {
         var texel = textures.texture4;
         var scaleFactor = [0.4, 0.4, 0.4];
@@ -655,7 +649,7 @@ function drawCube(option) {
             for (i=0;i<bullets.length;i++) {
                 bullets[i].update();
             }
-        var texel = textures.texture4; //bala
+        var texel = textures.texture4; //bullet
         var scaleFactor = [0.05, 0.05, 0.05];
     }
     else {
@@ -673,7 +667,7 @@ function drawCube(option) {
     gl.uniform1i(gl.getUniformLocation(gl.program, "u_Sampler"), 0);
     gl.uniform1i(gl.getUniformLocation(gl.program, "u_Sampler1"), 1);
 
-    // Obtengo matrices de modelo yvista respectivamente
+    // Model and View Matrices
     var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
     if (!u_ModelMatrix)
     {
@@ -682,7 +676,7 @@ function drawCube(option) {
     }
     var modelMatrix = new Matrix4(); // M
     if (option == "BULLET") {
-        // Pinto las balas, cuyos datos están almacenados en el objeto bullets
+        // draw bullets
         for (i=0;i<bullets.length;i++) {
             modelMatrix.setTranslate(bullets[i].x, bullets[i].y, bullets[i].z).rotate(0,0,bullets[i].angle,1).scale(scaleFactor[0],scaleFactor[1],scaleFactor[2]);
             gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
@@ -696,8 +690,8 @@ function drawCube(option) {
             gl.uniformMatrix4fv(nUniform, false, normalMatrix.elements);
 
             gl.drawElements(gl.TRIANGLES, buffers.n, gl.UNSIGNED_BYTE, 0);
-      }
-  } else {
+        }
+    } else {
         modelMatrix.setTranslate(translateTo[0], translateTo[1], translateTo[2]).scale(scaleFactor[0],scaleFactor[1],scaleFactor[2]);
         gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
@@ -710,15 +704,14 @@ function drawCube(option) {
         gl.uniformMatrix4fv(nUniform, false, normalMatrix.elements);
 
         gl.drawElements(gl.TRIANGLES, buffers.n, gl.UNSIGNED_BYTE, 0);  
-  }
-  
+  } 
 }
 
-// FUNCIÓN QUE INVOCA Y CONTIENE LO NECESARIO PARA PINTAR
+// Draw the whole scene
 function drawScene() {
     buffers.gl.clear(buffers.gl.COLOR_BUFFER_BIT | buffers.gl.DEPTH_BUFFER_BIT); // Limpia lienzo y buffer de profundidad
 
-    // Obtengo nº de vértices
+    // vertex number
     n = initVertexBuffers(buffers.gl, "walls");
     if (n < 0) {
       console.log('Failed to set the vertex information');
@@ -726,21 +719,21 @@ function drawScene() {
     } else {
       buffers.n = n;
     }
-    drawWalls(buffers.enter); // Pinto muros
-    drawCube("CAMERA");       // Pinto cubo que representa la cámara
-    drawCube("BULLET");       // Pinto balas
-    // Compruebo si las balas impactan con el obstáculos después de actualizar su posición
+    drawWalls(buffers.enter);
+    drawCube("CAMERA");
+    drawCube("BULLET");
+    // Check if bullets collide with obstacles
     if (!headshot){
         for (i=0;i<bullets.length;i++) {
-          if (Math.floor(bullets[i].x) == Math.floor(obstacle.x) && Math.floor(bullets[i].y) == Math.floor(obstacle.y)) {
-              headshot = true;
-              points += 50;
-              document.getElementById("p_points").innerHTML = "points: " + points + " pts.";
-              bullets.splice(i,1);
-          }
+            if (Math.floor(bullets[i].x) == Math.floor(obstacle.x) && Math.floor(bullets[i].y) == Math.floor(obstacle.y)) {
+                headshot = true;
+                points += 50;
+                document.getElementById("p_points").innerHTML = "points: " + points + " pts.";
+                bullets.splice(i,1);
+            }
         }
     }
-    // Compruebo que las balas choquen con los muros
+    // Check if bullets collide with walls
     for (var i=0;i<mazeMatrix.my_maze.rooms.length;i++) {
       for (var j=0;j<mazeMatrix.my_maze.rooms.length;j++) {
         for (x=0;x<bullets.length;x++){
@@ -751,13 +744,12 @@ function drawScene() {
         }
       }
     }
-    // Pinto el obstáculo si sigue vivo
+    // Draw zombie in case it is still alive
     if (headshot == false) {
         n = initVertexBuffers(buffers.gl, "zombie");
         drawCube("OBSTACLE");
     }
 
-    // Obtengo nº de vértices para el suelo
     n = initVertexBuffers(buffers.gl, "floor");
     if (n < 0) {
       console.log('Failed to set the vertex information');
@@ -765,14 +757,14 @@ function drawScene() {
     } else {
       buffers.n = n;
     }
-    drawFloor(); // Pinto suelo
-    drawExit();  // Pinto casilla de salida
-    // Actualizo y pinto la posición del punto rojo en la miniatura
+    drawFloor();
+    drawExit();
+    // Refresh representation of actual position
     buffers.ctx_2d.clearRect(0, 0, buffers.canvas.width, buffers.canvas.height);
     mazeMatrix.my_maze.pos.x = Math.floor(buffers.camx);
     mazeMatrix.my_maze.pos.y = Math.floor(buffers.camy);
     mazeMatrix.my_maze.draw(buffers.ctx_2d, 0, 0, 5, 0);
-    // Compruebo si se ha llegado al final del laberinto
+    // Check if the actual position matches the way out
     if (mazeMatrix.my_maze.pos.x == 0 && mazeMatrix.my_maze.pos.y == 0) {
         finishGame("WIN");
     } else {
@@ -780,7 +772,7 @@ function drawScene() {
     }
 }
 
-// FUNCIÓN DE DETECCIÓN DE COLISIONES
+// Collision detection
 function crashWithSomething() {
   var crashed = false;
   for (var i=0;i<mazeMatrix.my_maze.rooms.length;i++) {
@@ -809,7 +801,7 @@ function crashWithSomething() {
   return crashed;
 }
 
-// CONSTRUCTOR DE BALAS
+// Bullet Constructor
 function Bullet() {
     this.x = buffers.camx;
     this.y = buffers.camy;
@@ -822,13 +814,13 @@ function Bullet() {
     }
 }
 
-// FUNCIÓN DE FINALIZACIÓN DEL JUEGO
+// Function to manage game VICTORY, LOSS
 function finishGame(option) {
 
     clearInterval(timing);
     steps_sound.pause();
     if (option == "WIN") {
-      // Se muestra uno u otro mensaje dependiendo del nivel actual
+      // Help message depends on level
       document.getElementById("msg").innerHTML = "exit of level " + level + " reached."
       var nextLevel = level +1;
       if (nextLevel < 5) {
@@ -840,7 +832,7 @@ function finishGame(option) {
           document.getElementById("help").innerHTML = "Help: HURRY UP! you will have 10 seconds left in level " + nextLevel + ".";
       }
     } else if (option == "LOSE") {
-      // Mostrar mensaje en caso de que se agote el tiempo
+      // Show LOSS message
       document.getElementById("msg").innerHTML = "TIME'S UP :("
       document.getElementById("help").innerHTML = "";
       document.getElementById("next_stats").innerHTML = "Show Statistics";
@@ -853,7 +845,7 @@ function finishGame(option) {
     displayModal();
 }
 
-// FUNCIÓN QUE GESTIONA EL CAMBIO DE NIVEL
+// Manage LEVEL UP
 function nextLevel() {
 
   points += 100;
@@ -866,13 +858,13 @@ function nextLevel() {
   main();
 }
 
-// FUNCIÓN PARA DESPLEGAR LA VENTANA MODAL
+// Modal display
 function displayModal() {
     var modal = document.getElementById('myModal');
     modal.style.display = "block";
 }
 
-// FUNCIÓN QUE CONTROLA EL TIEMPO DE JUEGO
+// Game time
 function gameTime() {
     var msecPerMinute = 1000 * 60;
     var dateMsec = starthour.getTime();
@@ -886,7 +878,7 @@ function gameTime() {
 
     var seconds = Math.floor(diference / 1000 );
 
-    // Muestro el tiempo
+    // show time remaining
     var hour = 0 + " : " + minutes + " : " + seconds;
     document.getElementById("timing").innerHTML = hour;
     if (minutes==0 && seconds==0 || minutes<0)
@@ -895,7 +887,7 @@ function gameTime() {
     }
 }
 
-// MANEJADOR DE EVENTOS (pulsar tecla)
+// Control Keys Handler
 function keyHandler(event) {
   buffers.enter = true;
   switch(event.key) {
